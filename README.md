@@ -65,9 +65,29 @@ public class Example : MonoBehaviour
 
 ---
 
+## macOS Security Notice
+
+The native plugin (`NativeUsdBridge.bundle`) is not notarized with Apple Developer ID in this Early Access release.
+
+If macOS Gatekeeper blocks the plugin, follow these steps:
+
+1. Open **System Settings → Privacy & Security**
+2. Scroll down to the security section
+3. Click **"Open Anyway"** next to the blocked item
+
+Or via Terminal:
+```bash
+xattr -dr com.apple.quarantine /path/to/your/UnityProject/Library/PackageCache/com.zenithgatestudios.usd-stagecraft*/Runtime/Plugins/macOS/NativeUsdBridge.bundle
+```
+
+> Notarization will be added in a future release.
+
+---
+
 ## Known Limitations (Early Access)
 
 - macOS Apple Silicon only (Windows support coming in v1.0)
+- Plugin is not yet notarized (see macOS Security Notice above)
 - Large USD files (> 500 MB) may cause slow load times
 - USD variants and payloads are partially supported
 
