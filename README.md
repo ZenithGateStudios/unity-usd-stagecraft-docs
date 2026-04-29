@@ -95,8 +95,8 @@ xattr -dr com.apple.quarantine /path/to/your/UnityProject/Library/PackageCache/c
 
 ## Support & Documentation
 
-- GitHub: https://github.com/ZenithGateStudios/unity-usd-stagecraft
-- Issues: https://github.com/ZenithGateStudios/unity-usd-stagecraft/issues
+- GitHub: https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs
+- Issues: https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs/issues
 
 ---
 
