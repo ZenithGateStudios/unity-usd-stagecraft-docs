@@ -2,6 +2,20 @@
 
 All notable changes to USD Stagecraft will be documented in this file.
 
+## [0.1.2] - 2026-05-08
+
+### Added
+- `ThirdParty/README.txt` — attribution, NOTICE, and full Apache 2.0 text for redistributed OpenUSD 0.26.5, Intel oneTBB, plus MaterialX / usdMtlx notice. See `Documentation/README.md` for a short guide.
+
+### Notes
+- When upgrading the OpenUSD SDK under `Core/external/USD`, refresh `ThirdParty/README.txt` (version strings, NOTICE alignment, and the Apache 2.0 section if upstream license terms change), and the version in `include/pxr/pxr.h` as applicable.
+
+---
+
+## [0.1.1] - 2026-04-29 
+ - Minor bug fixes.
+ - Minor update.
+
 ## [0.1.0] - 2026-04-29 (Early Access)
 
 ### Added
@@ -20,6 +34,6 @@ All notable changes to USD Stagecraft will be documented in this file.
 - macOS Apple Silicon (arm64) native plugin (`NativeUsdBridge.bundle`)
 
 ### Known Limitations
-- macOS Apple Silicon only (Windows support planned for v1.0)
+- macOS Apple Silicon only (Intel Mac support planned for v0.2.0, Windows for v1.0)
 - Intel Mac (x86_64) not supported
 - USD variants and payloads are partially supported
