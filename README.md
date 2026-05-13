@@ -334,7 +334,7 @@ If the package was installed via a different route, it may instead live under `L
   - Changelog: https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs/blob/main/CHANGELOG.md
   - Licenses: https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs/blob/main/LICENSE.txt
 - **Repository:** https://github.com/ZenithGateStudios/unity-usd-stagecraft
-- **Issues:** https://github.com/ZenithGateStudios/unity-usd-stagecraft/issues
+- **Issues:** https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs/issues
 
 ---
 
