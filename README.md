@@ -2,7 +2,7 @@
 
 Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with file watching and diff reload.
 
-**Version:** 0.1.3 (Early Access)<br>
+**Version:** 0.1.5 (Early Access)<br>
 **Publisher:** ZenithGateStudios
 
 ---
@@ -68,7 +68,7 @@ After import, sample assets live under:
 
 `Assets/Samples/USD Stagecraft/<package-version>/<SampleName>/`
 
-where `<package-version>` matches this package’s version (for example **0.1.2**).
+where `<package-version>` matches this package’s version (for example **0.1.5**).
 
 ### From a local package folder (developers)
 
@@ -278,7 +278,7 @@ Current highlights from that file for context:
 - **v0.2.0** — Broader macOS native binary coverage (Intel / universal2).
 - **v1.0** — Windows support, stronger HDRP story, notarization, and additional pipeline features as listed there.
 
-This README describes **v0.1.2** behavior; newer branches may ship different platform matrices.
+This README describes **v0.1.5** behavior; newer branches may ship different platform matrices.
 
 ---
 
