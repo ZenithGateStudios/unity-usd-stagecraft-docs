@@ -2,16 +2,7 @@
 
 All notable changes to USD Stagecraft will be documented in this file.
 
-## [0.1.5] - 2026-06-18
-
-### Changed
-- English package metadata (`package.json` descriptions) for Asset Store compliance (Section 2.4.1).
-- English XML documentation, comments, tooltips, and user-facing log messages across public C# APIs.
-
-### Notes
-- Publisher documentation: https://zenithgatestudios.github.io/unity-usd-stagecraft-docs/
-
-## [0.1.4] - 2026-06-13
+## [0.1.5] - 2026-06-13
  - Minor bug fixes.
 
 ## [0.1.2] - 2026-05-08
