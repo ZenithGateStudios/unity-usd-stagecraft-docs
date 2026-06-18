@@ -2,7 +2,7 @@
 
 Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with file watching and diff reload.
 
-**Version:** 0.1.2 (Early Access)  
+**Version:** 0.1.3 (Early Access)<br>
 **Publisher:** ZenithGateStudios
 
 ---

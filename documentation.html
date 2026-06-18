@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>USD Stagecraft Documentation | ZenithGate Studios</title>
+  <meta name="description" content="Documentation for USD Stagecraft, a Unity package for OpenUSD runtime loading, editor preview, and iteration workflows.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">ZenithGate Studios</a>
+      <div class="nav-links">
+        <a href="index.html#about">About</a>
+        <a href="index.html#asset">USD Stagecraft</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="index.html#contact">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="content-page">
+    <section class="page-title">
+      <p class="eyebrow">Documentation</p>
+      <h1>USD Stagecraft 0.1.x</h1>
+      <p>Load OpenUSD files at runtime in Unity, preview them in the Editor, and iterate with file watching and diff reload.</p>
+    </section>
+
+    <section class="section">
+      <h2>Supported environments</h2>
+      <div class="table-wrapper">
+        <table>
+          <tbody>
+            <tr><th>Unity</th><td>2022.3 LTS or later</td></tr>
+            <tr><th>macOS</th><td>Apple Silicon (M1 / M2 / M3), arm64 only</td></tr>
+            <tr><th>Windows</th><td>Planned for v1.0</td></tr>
+            <tr><th>Render pipelines</th><td>Built-in Render Pipeline and URP are the primary targets</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Installation</h2>
+      <ol>
+        <li>Open <strong>Window &gt; Package Manager</strong> in Unity.</li>
+        <li>Set the package source to <strong>My Assets</strong>.</li>
+        <li>Select <strong>USD Stagecraft</strong>, then download and import it.</li>
+        <li>Confirm the package appears under <code>Packages/com.zenithgatestudios.usd-stagecraft/</code>.</li>
+      </ol>
+      <p>Optional samples can be imported from the Package Manager samples section.</p>
+    </section>
+
+    <section class="section">
+      <h2>Quick start: Editor preview</h2>
+      <ol>
+        <li>Add an empty GameObject or use the Stage Preview sample scene.</li>
+        <li>Add the <code>UsdStagePreview</code> component.</li>
+        <li>Set <strong>File Path</strong> to a valid USD file.</li>
+        <li>The USD hierarchy appears under the GameObject in the Scene view without entering Play mode.</li>
+      </ol>
+      <p>Changing <strong>File Path</strong>, <strong>Shader Name</strong>, or <strong>Scale</strong> reloads the preview in the Editor.</p>
+    </section>
+
+    <section class="section">
+      <h2>Quick start: Runtime loading</h2>
+      <p>Place runtime USD files under <code>Assets/StreamingAssets/</code>, then load them with <code>UsdLoader.LoadAsync</code>.</p>
+      <pre><code>using UsdStagecraft;
+using UnityEngine;
+
+public class LoadUsdOnce : MonoBehaviour
+{
+    private LoadResult result;
+
+    private async void Start()
+    {
+        result = await UsdLoader.LoadAsync("/absolute/path/to/scene.usda", "Standard", 0f);
+        if (!result.IsSuccess)
+        {
+            Debug.LogError(result.ErrorMessage);
+            return;
+        }
+
+        result.Root.transform.SetParent(transform, false);
+    }
+
+    private void OnDestroy()
+    {
+        if (result != null &amp;&amp; result.IsSuccess)
+        {
+            UsdLoader.Unload(result);
+        }
+    }
+}</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Core workflows</h2>
+      <div class="card-grid">
+        <article class="card">
+          <h3>Stage preview</h3>
+          <p>Edit mode uses synchronous loading for preview. Play mode uses asynchronous loading through <code>Load()</code> or <strong>Auto Load On Start</strong>.</p>
+        </article>
+        <article class="card">
+          <h3>Hot reload</h3>
+          <p>When a watched USD layer or referenced texture changes on disk, USD Stagecraft refreshes the stage or materials where applicable.</p>
+        </article>
+        <article class="card">
+          <h3>Variants and edit layers</h3>
+          <p>Inspector controls expose USD variants and edit-layer operations without modifying the original root USD as the primary workflow.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Known limitations</h2>
+      <ul>
+        <li>Early Access supports macOS Apple Silicon only.</li>
+        <li>The native plugin is not notarized in the current Early Access release.</li>
+        <li>Very large USD files may load slowly or stress memory.</li>
+        <li>USD variants and payloads are partially supported.</li>
+        <li>HDRP is not a fully validated target in this release.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Full package README</h2>
+      <p>The complete release README is mirrored in this repository for customers who need detailed API tables, troubleshooting, and license notes.</p>
+      <a class="button secondary" href="README.md">Open README.md</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 ZenithGate Studios. Documentation based on the release-v0.1.x package documentation.</p>
+  </footer>
+</body>
+</html>

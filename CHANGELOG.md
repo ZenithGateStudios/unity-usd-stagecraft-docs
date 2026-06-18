@@ -2,6 +2,9 @@
 
 All notable changes to USD Stagecraft will be documented in this file.
 
+## [0.1.4] - 2026-06-13
+ - Minor bug fixes.
+
 ## [0.1.2] - 2026-05-08
 
 ### Added
