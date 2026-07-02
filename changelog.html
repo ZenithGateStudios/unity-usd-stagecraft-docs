@@ -29,6 +29,26 @@
     </section>
 
     <section class="section release">
+      <h2>0.2.0 <span>2026-07-02</span></h2>
+      <h3>Added</h3>
+      <ul>
+        <li><strong>Windows (x86_64) native plugins</strong> — Editor and Standalone Windows x64.</li>
+        <li><strong><code>.usdz</code> local file paths</strong> — Loader and Editor file watcher accept <code>.usdz</code> alongside <code>.usd</code> / <code>.usda</code> / <code>.usdc</code>.</li>
+        <li>Third-party OSS attribution and full Apache 2.0 license text in <code>ThirdParty/README.txt</code>.</li>
+        <li>OpenUSD shared monolithic library (<code>libusd_ms.dylib</code> / <code>usd_ms.dll</code>) with USD plugins under <code>usd/</code> next to the native bridge.</li>
+      </ul>
+      <h3>Changed</h3>
+      <ul>
+        <li>OpenUSD redistribution unified to shared monolithic <code>libusd_ms</code> / <code>usd_ms.dll</code>.</li>
+        <li>macOS native plugins are <strong>Apple Silicon (arm64) only</strong> (Intel Mac support dropped).</li>
+      </ul>
+      <h3>Removed</h3>
+      <ul>
+        <li>macOS Intel (x86_64) support — macOS plugins and OpenUSD SDK are arm64 only.</li>
+      </ul>
+    </section>
+
+    <section class="section release">
       <h2>0.1.5 <span>2026-06-13</span></h2>
       <ul>
         <li>Minor bug fixes.</li>

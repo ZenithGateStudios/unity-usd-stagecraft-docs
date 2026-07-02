@@ -24,8 +24,8 @@
   <main class="content-page">
     <section class="page-title">
       <p class="eyebrow">Documentation</p>
-      <h1>USD Stagecraft 0.1.5</h1>
-      <p>Load OpenUSD files at runtime in Unity, preview them in the Editor, and iterate with file watching and diff reload.</p>
+      <h1>USD Stagecraft 0.2.0</h1>
+      <p>Load OpenUSD (<code>.usd</code> / <code>.usda</code> / <code>.usdc</code> / <code>.usdz</code>) files at runtime in Unity, preview them in the Editor, and iterate with file watching and diff reload.</p>
     </section>
 
     <section class="section">
@@ -35,8 +35,8 @@
           <tbody>
             <tr><th>Unity</th><td>2022.3 LTS or later</td></tr>
             <tr><th>macOS</th><td>Apple Silicon (M1 / M2 / M3), arm64 only</td></tr>
-            <tr><th>Windows</th><td>Planned for v1.0</td></tr>
-            <tr><th>Render pipelines</th><td>Built-in Render Pipeline and URP are the primary targets</td></tr>
+            <tr><th>Windows</th><td>x64</td></tr>
+            <tr><th>Render pipelines</th><td>Built-in Render Pipeline and URP are the primary targets (HDRP planned for v0.4.0)</td></tr>
           </tbody>
         </table>
       </div>
@@ -117,11 +117,11 @@ public class LoadUsdOnce : MonoBehaviour
     <section class="section">
       <h2>Known limitations</h2>
       <ul>
-        <li>Early Access supports macOS Apple Silicon only.</li>
+        <li>macOS Apple Silicon (arm64) and Windows x64.</li>
         <li>The native plugin is not notarized in the current Early Access release.</li>
         <li>Very large USD files may load slowly or stress memory.</li>
         <li>USD variants and payloads are partially supported.</li>
-        <li>HDRP is not a fully validated target in this release.</li>
+        <li>HDRP fuller support is planned for v0.4.0.</li>
       </ul>
     </section>
 
@@ -133,7 +133,7 @@ public class LoadUsdOnce : MonoBehaviour
   </main>
 
   <footer class="site-footer">
-    <p>&copy; 2026 ZenithGate Studios. Documentation based on the release-v0.1.x package documentation.</p>
+    <p>&copy; 2026 ZenithGate Studios. Documentation based on the release-v0.2.x package documentation.</p>
   </footer>
 </body>
 </html>

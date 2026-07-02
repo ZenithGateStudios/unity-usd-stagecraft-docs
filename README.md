@@ -2,7 +2,7 @@
 
 Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with file watching and diff reload.
 
-**Version:** 0.1.5 (Early Access)<br>
+**Version:** 0.2.0 (Early Access)  
 **Publisher:** ZenithGateStudios
 
 ---
@@ -33,11 +33,11 @@ Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, p
 | Item | Details |
 |------|---------|
 | Unity | 2022.3 LTS or later |
-| macOS | Apple Silicon (M1 / M2 / M3) — **arm64 only** |
-| Windows | Planned for v1.0 (see [Roadmap](#roadmap)) |
+| macOS | Apple Silicon (arm64) only |
+| Windows | x64 |
 | Render pipelines | **Built-in RP** and **URP** (primary targets; see [Render pipelines and shaders](#render-pipelines-and-shaders)) |
 
-> **Note:** Intel Mac (x86_64) is not supported in this Early Access release. Broader macOS support is planned for v0.2.0.
+> **HDRP:** fuller support is planned for **v0.4.0** (see [Roadmap](#roadmap)). **Apple notarization:** planned for **v1.0**.
 
 ---
 
@@ -68,13 +68,29 @@ After import, sample assets live under:
 
 `Assets/Samples/USD Stagecraft/<package-version>/<SampleName>/`
 
-where `<package-version>` matches this package’s version (for example **0.1.5**).
+where `<package-version>` matches this package’s version (for example **0.2.0**).
 
 ### From a local package folder (developers)
 
+For **repository development** only — point Unity at the repo’s `UnityPackage/package.json` (not the generated `.unitypackage`).
+
 1. Open **Window → Package Manager**.
 2. Click **+** → **Add package from disk…**
-3. Select `package.json` from the extracted package folder.
+3. Select `UnityPackage/package.json` in your clone of the [unity-usd-stagecraft](https://github.com/ZenithGateStudios/unity-usd-stagecraft) repository.
+
+**How this differs from the Asset Store / `.unitypackage` install:**
+
+| | Add package from disk | `.unitypackage` (distribution) |
+|--|----------------------|--------------------------------|
+| C# core | `Runtime/Scripts/Core/` compiled by Unity | Prebuilt `UsdStagecraft.Core.dll` |
+| Managed DLL | Not required | Bundled in the package |
+| Native plugins | Same `Runtime/Plugins/` layout | Same |
+
+**Notes:**
+
+- Only **NativeUsdBridge** (`NativeUsdBridge.bundle` / `NativeUsdBridge.dll`) is registered as a Unity native plugin. Dependency libraries (`libusd_ms.dylib`, `tbb`, MaterialX, etc.) ship next to it for `dyld` / the loader but must **not** be enabled as plugins (enabling them can crash the Editor on import).
+- After changing C++ sources, rebuild natives: `make native` (macOS arm64) or `make nativewin` (Windows x64).
+- To verify the **shipping** layout (DLL + excluded Core sources), use `make managed && make package` and import `Generated/USD_Stagecraft.unitypackage` instead.
 
 ---
 
@@ -153,6 +169,8 @@ Advanced: `UsdLoader.DiffReload(LoadResult, changedPaths)` exists for custom too
 If the stage has time-sampled data, the **UsdStagePreview** Inspector shows **Animation** transport (play/pause, frame slider, wrap mode). Evaluation uses **UsdAnimationPlayer** internally.
 
 ### Edit layers and save
+
+> **Note (v0.2.x / v0.3.x):** Edit Layer editing (create, switch, save, transform write-back) is temporarily disabled due to known issues. Preview, variants, and animation remain available. This is fixed in v0.4 (main).
 
 After load, the **Edit Layers** block (custom Inspector) lets you:
 
@@ -271,14 +289,18 @@ The **Basic Load** sample exposes `shaderName` in the Inspector for quick testin
 
 ## Roadmap
 
-High-level planning lives in the product repository: `Documents/ROADMAP.md` (same monorepo as this package).
+High-level planning lives in the product repository: `Documents/planning/ROADMAP.md` (same monorepo as this package).
 
-Current highlights from that file for context:
+Summary (see that file for editions such as Studio):
 
-- **v0.2.0** — Broader macOS native binary coverage (Intel / universal2).
-- **v1.0** — Windows support, stronger HDRP story, notarization, and additional pipeline features as listed there.
+| Version | Focus |
+|---------|--------|
+| v0.2.0 | Windows x64, `.usdz` local paths, macOS arm64 only |
+| v0.3.0 | `UsdGeomSubset`, additional UsdLux lights |
+| v0.4.0 | `UsdGeomPointInstancer`, `instanceable`, HDRP |
+| v1.0 | Apple notarization, multiple stages, skeletal mesh, basis curves |
 
-This README describes **v0.1.5** behavior; newer branches may ship different platform matrices.
+This README describes **v0.2.0** behavior; newer branches may ship different features.
 
 ---
 
@@ -306,11 +328,11 @@ If the package was installed via a different route, it may instead live under `L
 
 ## Known limitations (Early Access)
 
-- **macOS Apple Silicon only** (Windows support planned for v1.0; Intel Mac planned for v0.2.0 — see [Supported environments](#supported-environments)).
-- Plugin is **not yet notarized** (see [macOS security notice](#macos-security-notice)).
+- Plugin is **not yet notarized** on macOS (see [macOS security notice](#macos-security-notice)).
 - Very large USD files (for example **> 500 MB**) may load slowly or stress memory.
-- **USD variants and payloads** are only **partially** supported; complex compositions may not match a full USD viewer.
-- **HDRP** is not a fully validated target in this release; prefer **Built-in** or **URP** for predictable results.
+- **USD variants and payloads** are only **partially** supported.
+- **HDRP** is not a fully validated target in this release; prefer **Built-in** or **URP** for predictable shading unless you are explicitly testing HDRP.
+- Advanced **material writeback** and **layer reorder/mute** are not included in this edition (planned for **USD Stagecraft Studio** per roadmap).
 
 ---
 
