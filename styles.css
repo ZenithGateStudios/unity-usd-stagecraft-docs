@@ -211,6 +211,22 @@ pre code {
   margin-bottom: 0;
 }
 
+.demo-card {
+  margin-top: 1.5rem;
+}
+
+.demo-card img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.demo-card p {
+  max-width: 760px;
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
