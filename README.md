@@ -2,7 +2,7 @@
 
 Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with file watching and diff reload.
 
-**Version:** 0.2.0 (Early Access)  
+**Version:** 1.0.0 (v1.0)  
 **Publisher:** ZenithGateStudios
 
 ---
@@ -19,9 +19,9 @@ Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, p
 8. [Features (summary)](#features-summary)
 9. [Component and API reference](#component-and-api-reference)
 10. [Render pipelines and shaders](#render-pipelines-and-shaders)
-11. [Roadmap](#roadmap)
+11. [Roadmap (incl. changelog / v0.3.x baseline)](#roadmap)
 12. [macOS security notice](#macos-security-notice)
-13. [Known limitations (Early Access)](#known-limitations-early-access)
+13. [Known limitations](#known-limitations)
 14. [Troubleshooting](#troubleshooting)
 15. [Support and documentation](#support-and-documentation)
 16. [License](#license)
@@ -35,9 +35,7 @@ Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, p
 | Unity | 2022.3 LTS or later |
 | macOS | Apple Silicon (arm64) only |
 | Windows | x64 |
-| Render pipelines | **Built-in RP** and **URP** (primary targets; see [Render pipelines and shaders](#render-pipelines-and-shaders)) |
-
-> **HDRP:** fuller support is planned for **v0.4.0** (see [Roadmap](#roadmap)). **Apple notarization:** planned for **v1.0**.
+| Render pipelines | **Built-in RP**, **URP**, and **HDRP** |
 
 ---
 
@@ -68,29 +66,29 @@ After import, sample assets live under:
 
 `Assets/Samples/USD Stagecraft/<package-version>/<SampleName>/`
 
-where `<package-version>` matches this package’s version (for example **0.2.0**).
+where `<package-version>` matches this package’s version (for example **1.0.0**).
 
 ### From a local package folder (developers)
 
-For **repository development** only — point Unity at the repo’s `UnityPackage/package.json` (not the generated `.unitypackage`).
-
 1. Open **Window → Package Manager**.
 2. Click **+** → **Add package from disk…**
-3. Select `UnityPackage/package.json` in your clone of the [unity-usd-stagecraft](https://github.com/ZenithGateStudios/unity-usd-stagecraft) repository.
+3. Select `package.json` from the extracted package folder.
 
-**How this differs from the Asset Store / `.unitypackage` install:**
+### Repository layout (source development vs DLL distribution)
 
-| | Add package from disk | `.unitypackage` (distribution) |
-|--|----------------------|--------------------------------|
-| C# core | `Runtime/Scripts/Core/` compiled by Unity | Prebuilt `UsdStagecraft.Core.dll` |
-| Managed DLL | Not required | Bundled in the package |
-| Native plugins | Same `Runtime/Plugins/` layout | Same |
+When working from the **git repository**, C# is split between compiled DLLs and source shipped to end users:
 
-**Notes:**
+| Path | Source dev | DLL distribution (Asset Store) |
+|------|------------|--------------------------------|
+| `Runtime/Scripts/Core/` | C# source (compiled to DLL locally) | **Excluded** — logic in `UsdStagecraft.Core.dll` |
+| `Runtime/Scripts/UsdStagePreview.cs` | Source | Source (public API) |
+| `Runtime/Plugins/Managed/` | Built DLL output from `make` | `UsdStagecraft.Core.dll` |
+| `Editor/Core/` | C# source | **Excluded** — `UsdStagecraft.Editor.Core.dll` |
+| `Editor/*.cs` (except Core) | C# source | **Excluded** — `UsdStagecraft.Editor.dll` |
+| `Editor/Panel/*.uxml` / `*.uss` | Assets | Shipped as assets |
+| `ThirdParty/UnityMeshSimplifier/` | Source | **Excluded** — embedded in Editor.Core DLL |
 
-- Only **NativeUsdBridge** (`NativeUsdBridge.bundle` / `NativeUsdBridge.dll`) is registered as a Unity native plugin. Dependency libraries (`libusd_ms.dylib`, `tbb`, MaterialX, etc.) ship next to it for `dyld` / the loader but must **not** be enabled as plugins (enabling them can crash the Editor on import).
-- After changing C++ sources, rebuild natives: `make native` (macOS arm64) or `make nativewin` (Windows x64).
-- To verify the **shipping** layout (DLL + excluded Core sources), use `make managed && make package` and import `Generated/USD_Stagecraft.unitypackage` instead.
+Full build steps: repository `Documents/distribution/dll-distribution.md`.
 
 ---
 
@@ -131,7 +129,8 @@ Changing **File Path**, **Shader Name**, or **Scale** in the Inspector reloads t
 | **Prim** | A node in the USD scene graph; imported as a **GameObject** with optional mesh, light, camera, or collider. |
 | **LoadResult** | Result of `UsdLoader.LoadAsync` / `LoadSync`: success flag, **Root** object, **NodeMap** (prim path → GameObject), stage handle, animation metadata. |
 | **UsdPrimBinding** | Component on imported prims carrying the USD **prim path**; used for per-prim variant UI in the Inspector. |
-| **Session sidecar** | JSON file `{rootUsdBaseName}_unity_session.json` next to the root USD file: remembers **SubLayers** and **EditTarget** across Editor sessions (non-destructive to the original USD). |
+| **GeomSubset (materialBind)** | Child `UsdGeomSubset` prims with material bindings split the mesh into sub-meshes; each subset gets its own material slot on the **MeshRenderer**. |
+| **Root subLayers** | `[+]` picks a save path and creates an **in-memory** anonymous edit layer only (no `.usdc` or root `subLayers` on disk yet). **Save** exports the layer to the chosen path and writes root `subLayers` (UE *File > Save* style). In the Editor, paths under `Assets/` are passed to **AssetDatabase.ImportAsset** so `.meta` is created and the file appears in the Project window. **EditTarget** is stored per **UsdStagePreview** instance. Legacy `{name}_unity_session.json` sidecars are migrated once on load. |
 
 ---
 
@@ -161,16 +160,20 @@ Advanced: `UsdLoader.DiffReload(LoadResult, changedPaths)` exists for custom too
 
 ### Variants
 
-- **UsdStagePreview** exposes **USD Variants** in its custom Inspector after load. Choosing a variant calls `SetVariant`, which updates the session layer and **refreshes** the affected subtree (`UsdLoader.SetVariantAndRefresh`). The **source USD file on disk is not modified** by variant selection.
+- **UsdStagePreview** exposes **USD Variants** in its custom Inspector after load. Choosing a variant writes to the **EditTarget** layer and **refreshes** the affected subtree (`UsdLoader.SetVariantAndRefresh`). Persist with **Save Edit Layer**.
 - Prims with variant sets also show variant controls on **UsdPrimBinding** objects in the hierarchy.
 
 ### Animation
 
-If the stage has time-sampled data, the **UsdStagePreview** Inspector shows **Animation** transport (play/pause, frame slider, wrap mode). Evaluation uses **UsdAnimationPlayer** internally.
+If the stage has time-sampled data, the **UsdStagePreview** Inspector shows **Animation** transport (play/pause, frame slider, wrap mode). Evaluation uses **UsdAnimationPlayer** internally (Xform, PointInstancer, and **`UsdSkel`** skeleton joints).
+
+### Skeletal mesh (`UsdSkel`)
+
+Stages with **`UsdSkel`** prims load as a bone hierarchy with **`SkinnedMeshRenderer`** (linear blend skinning, up to 4 joint influences per vertex). Use the same Animation transport to scrub skeleton animation in the Editor or Play mode.
+
+**Bake to Prefab:** **USD Stage → Bake to Prefab** emits skeleton and Xform **`AnimationClip`** assets, **`AnimatorController`**, **`Skinned_*`** visual prefabs (relinked into the stage hierarchy), and optionally **`StageTimeline.playable`** when Timeline is installed. See [Known limitations](#known-limitations) for skeletal and animation scope limits.
 
 ### Edit layers and save
-
-> **Note (v0.2.x / v0.3.x):** Edit Layer editing (create, switch, save, transform write-back) is temporarily disabled due to known issues. Preview, variants, and animation remain available. This is fixed in v0.4 (main).
 
 After load, the **Edit Layers** block (custom Inspector) lets you:
 
@@ -179,6 +182,56 @@ After load, the **Edit Layers** block (custom Inspector) lets you:
 - Click **Save** to flush **Transform** and **Visibility** differences from the Unity hierarchy into the **EditTarget** layer via `SaveEditLayer`.
 
 **Save** writes through the USD stage API; it does **not** overwrite your original root USD file as the primary workflow — session and edit layers are stored as separate files. A typical sidecar edit file name pattern is `{rootName}_unity_edits.usda` next to the root USD (see log output after save).
+
+### Unity ↔ DCC edit cycle (current)
+
+This package supports a **manual** round trip between a DCC tool and **UsdStagePreview**. Live bidirectional sync is planned for **v1.1** (see roadmap).
+
+| Direction | What works today | What does not |
+|-----------|------------------|---------------|
+| **DCC → Unity** | Save USD on disk → **UsdStagePreview** file watcher runs **DiffReload** (meshes, materials, transforms, visibility, variants from disk). | Prim-level live push without a file save. |
+| **Unity → DCC** | Edit **Transform** / **Visibility** in the Hierarchy or **USD Stage** panel → **Save Edit Layer** writes to the **EditTarget** sidecar and updates root `subLayers`. | Materials, lights, mesh geometry. |
+| **Variants** | Switch in Inspector / **USD Stage** → stored on **EditTarget** (persist after **Save**). | — |
+| **purpose / kind** | Edited in **USD Stage** Properties → EditTarget in memory → **Save** to disk. | — |
+
+**Recommended DCC workflow**
+
+1. Open the same root USD in your DCC and in Unity (**UsdStagePreview** or **USD Stage** window).
+2. In Unity, create an edit layer (**+** in **USD Stage** → Layers) if you plan to write edits back.
+3. DCC saves → Unity preview updates automatically (hot reload).
+4. Unity edits → **File → Save Edit Layer** (or Inspector **Save**).
+5. In the DCC, ensure the root USD references the Unity edit layer as a **SubLayer** (Unity **Save** also writes `subLayers` on the root when possible). Reload the stage in the DCC to see overrides.
+
+Unity-managed edit layer files are **ignored** by diff reload so your own saves do not wipe the preview.
+
+### Baked Prefab ↔ USD Stage Preview (current)
+
+**Bake to Prefab** is a **one-way** export from preview to Unity assets, but baked prefabs now keep USD linkage for round trip:
+
+| Step | Behavior |
+|------|----------|
+| **Bake** | Parent **UsdScene** Prefab + child visual Prefabs; **`UsdStageReference`** on the root stores root USD path, edit layers, and shader settings; **`UsdPrimBinding`** remains on prims. |
+| **Rehydrate** | **USD Stage → Open in Preview** (toolbar or **Actions** menu) removes the baked **scene instance**, opens a live **UsdStagePreview**, and applies baked transform overrides. |
+| **Write back from Prefab** | **USD Stage → Write to USD** (toolbar or **Actions** menu) opens the stage from **`UsdStageReference`**, writes bound transforms/visibility to the edit layer, and saves. |
+
+Before bake, pending Unity edits can be flushed with **Save Edit Layer** (prompted automatically when needed).
+
+### Preview visual cache
+
+Editor preview stores generated meshes/materials under **`Assets/UsdStagecraftCache/{fileName}__{pathHash8}/`**. The folder name is derived from the USD file path only (not the native stage handle), so reopening the same file reuses the same cache directory. Legacy folders named `__h{handle}` are still picked up when their manifest matches the file path.
+
+### LOD (Bake primary path + thin Importer)
+
+LOD is primarily driven by **Bake** and **`.usd` Reimport**. LOD generation in the preview cache is **OFF** by default (Project Settings → **Generate LOD In Preview Cache**).
+
+| Layer | Where to configure |
+|----|----------|
+| Project | **Edit → Project Settings → USD Stagecraft → Native Asset** — Profile presets (Default / Hero / Prop / None), defaults for Bake/Import |
+| Prim | **USD Stage** properties — `lodProfile` / `generateLod`(written back to USD `customData`) |
+| Bake | folder picker — **Override LOD settings** — override Generate LOD / Profile |
+| Importer | `.usd` Inspector — same overrides (thin `UsdScriptedImporter`) |
+
+Prim `customData` keys: `unity:lodProfile` (preset name), `unity:generateLod` (`false` explicitly disables). Reduction ratios and thresholds are not stored on Prims. See `Documents/design/lod-design.md` in the repository.
 
 ### Scripting (`UsdLoader`)
 
@@ -220,17 +273,25 @@ public class LoadUsdOnce : MonoBehaviour
 
 - **Runtime loading** — `UsdLoader.LoadAsync` / `LoadSync` (Editor), `Unload`
 - **UsdGeomMesh** — mesh import with normals and UVs where authored
+- **UsdGeomSubset** — `materialBind` subsets split meshes into sub-meshes with per-subset **UsdPreviewSurface** materials
 - **UsdPreviewSurface** — PBR-style materials (see shader table below)
 - **Prim hierarchy** — USD scene graph as **GameObject** parent/child chain
-- **UsdLux** — basic light types mapped to Unity **Light** (e.g. distant, sphere, rect, disk, cylinder — see code for exact mapping)
+- **UsdLux** — **Distant**, **Sphere**, **Disk**, **Cylinder**, **Rect** lights mapped to Unity **Light**; **DomeLight** applied as **environment lighting** (approximate, not full HDR dome IBL); **ShapingAPI** (cone half-angle under 90°) selects **Spot**; **intensity**, **exposure**, and **color** from `UsdLuxLightAPI`
+- **HDRP (optional)** — `UsdStagecraft.Hdrp` assembly with `HDRenderPipelineHost` (`HDRP/Lit`, area / spot / disc / tube lights, Dome via GradientSky); **added in v0.4.0 on `main`**. The **v0.3.x** line validated **Built-in** and **URP** first — see `CHANGELOG.md` sections **`[0.3.0]`** and **`[0.4.0]`**.
 - **UsdGeomCamera** — **Camera** component where authored
 - **USD Physics** — colliders from **PhysicsCollisionAPI** / **PhysicsMeshCollisionAPI** (with guide mesh / approximation behaviors)
-- **UsdAnimationPlayer** — time-sampled playback in Editor and Play (via **UsdStagePreview**)
+- **UsdAnimationPlayer** — time-sampled playback in Editor and Play (Xform, PointInstancer, `UsdSkel` skeleton joints)
+- **`UsdSkel` skeletal mesh** — bone hierarchy + `SkinnedMeshRenderer` at runtime preview (LBS, up to 4 influences)
+- **Skeleton / Xform `AnimationClip` bake** — joint and transform curves + `AnimatorController` during **Bake to Prefab** and animated **ScriptedImporter** import
+- **SkinnedMesh Prefab relink** — `Visuals/Skinned_*/` prefabs wired into the baked stage hierarchy
+- **Timeline / Playable** — preview time driver (`UsdStageTimelineBridge`) and baked `StageTimeline.playable` (`UsdTimelineBaker`; requires `com.unity.timeline`)
+- **USD Scripted Importer (animated)** — time-sampled USD imports clips, skinned prefabs, and timeline alongside static mesh import
+- **Multi-stage preview** — multiple **UsdStagePreview** instances per scene (**Window → USD Stagecraft → USD Stage**)
 - **UsdStagePreview** — Editor preview without Play; Play mode async load
 - **Variant sets** — Inspector selection on loader and bound prims
 - **Hot reload** — file watcher + diff reload for rapid DCC iteration
 - **Edit layers** — EditTarget selection, new SubLayer, save Transform / Visibility to EditTarget
-- **Session sidecar** — `{name}_unity_session.json` for SubLayer / EditTarget persistence
+- **Root subLayers + Save** — `[+]` registers layers in memory; **Save** writes edit layer + root `subLayers` to disk; EditTarget on `UsdStagePreview`
 
 ---
 
@@ -247,7 +308,19 @@ public class LoadUsdOnce : MonoBehaviour
 | `Load()` | Starts async load in Play mode. |
 | `Unload()` | Destroys loaded hierarchy and closes the stage. |
 | `SaveEditLayer()` | Writes Transform/Visibility deltas to the current EditTarget layer file. |
-| `SetVariant(primPath, variantSetName, variantName)` | Selects a variant and refreshes the subtree. |
+| `SetVariant(primPath, variantSetName, variantName)` | Selects a variant (EditTarget) and refreshes the subtree. Save to persist. |
+| `HasPendingUnityEdits()` | True when unsaved Transform/Visibility deltas exist. |
+
+### `UsdStageReference` (baked Prefab root)
+
+Editor-only metadata for Rehydrate and Write-back. Fields (`RootUsdPath`, `EditTargetPath`, etc.) are declared under `#if UNITY_EDITOR` and are **not serialized into Player builds** (Unity 2021.2+). The `UsdStageReference` component itself may remain on baked prefabs at runtime as an empty marker; it has no effect in Player builds.
+
+| Member | Purpose |
+|--------|---------|
+| `RootUsdPath` | Root USD file used when the prefab was baked (Editor only). |
+| `EditTargetPath` / `PersistentSubLayers` | Edit layer stack for rehydrate and write-back (Editor only). |
+| Rehydrate | **USD Stage → Open in Preview** (replaces scene instance with live preview) |
+| Write-back | **USD Stage → Write to USD** |
 
 ### `UsdLoader` (static)
 
@@ -269,7 +342,7 @@ public class LoadUsdOnce : MonoBehaviour
 | `NodeMap` | `primPath` → **GameObject** for advanced scripts. |
 | `StageHandle` | Native stage handle (do not close manually if using `Unload`). |
 | `ShaderName` | Shader used to build materials. |
-| `HasAnimation`, time fields, `AnimatedPrims` | Animation metadata. |
+| `HasAnimation`, time fields, `AnimatedPrims`, `AnimatedSkeletons` | Animation metadata. |
 | `PersistentSubLayers`, `PersistentEditTarget` | Used internally across reloads for edit layers. |
 | `RefreshAnimatedPrims()` | Rescans time-sampled prims after reload. |
 
@@ -281,7 +354,9 @@ public class LoadUsdOnce : MonoBehaviour
 |----------|-------------------------------|
 | Built-in | `Standard` |
 | URP | `Universal Render Pipeline/Lit` |
-| HDRP | `HDRP/Lit` (may be auto-selected when an HDRP pipeline asset is active; **full HDRP parity is not guaranteed** in Early Access — see [Roadmap](#roadmap)) |
+| HDRP | `HDRP/Lit` — **HDRP is an active target** in this branch (see [Known limitations](#known-limitations) for caveats). |
+
+**RectLight note:** on the **Built-in** render pipeline, Unity treats **Rectangle** lights as **baked-only** for real-time views; prefer **URP** (or test **HDRP**) when you need real-time rectangular area lights. **DomeLight** is approximated through the active `IUsdRenderPipelineHost` (for example ambient-style settings on Built-in / URP), not as a full panoramic environment map.
 
 The **Basic Load** sample exposes `shaderName` in the Inspector for quick testing across pipelines.
 
@@ -289,26 +364,21 @@ The **Basic Load** sample exposes `shaderName` in the Inspector for quick testin
 
 ## Roadmap
 
-High-level planning lives in the product repository: `Documents/planning/ROADMAP.md` (same monorepo as this package).
+### Changelog and version baseline
 
-Summary (see that file for editions such as Studio):
+`CHANGELOG.md` lists **`[1.0.0]`** then **`[0.4.0]`**, **`[0.3.0]`**, etc. (newest first).
 
-| Version | Focus |
-|---------|--------|
-| v0.2.0 | Windows x64, `.usdz` local paths, macOS arm64 only |
-| v0.3.0 | `UsdGeomSubset`, additional UsdLux lights |
-| v0.4.0 | `UsdGeomPointInstancer`, `instanceable`, HDRP |
-| v1.0 | Apple notarization, multiple stages, skeletal mesh, basis curves |
+Authoritative release planning lives in `Documents/planning/ROADMAP.md` at the **Git repository root** (this file ships under `Documentation/` inside the Unity package; the roadmap file is not duplicated inside the package folder).
 
-This README describes **v0.2.0** behavior; newer branches may ship different features.
+This **main** line is **package 1.0.0** (**v1.0**) on top of the **v0.4.0** feature set (PointInstancer, HDRP, Bake to Prefab, LOD, ScriptedImporter). **v1.0** adds multi-stage preview, **`UsdSkel`** runtime preview, skeleton / Xform **`AnimationClip`** bake, skinned prefab relink, Timeline integration, animated **ScriptedImporter** import, and DiffReload skinning. **`UsdGeomBasisCurves`** is deferred to **v1.1**.
+
+Release branches may pin earlier versions; this README matches **`package.json`** on `main`.
 
 ---
 
 ## macOS security notice
 
-The native plugin (`NativeUsdBridge.bundle`) is not notarized with Apple Developer ID in this Early Access release.
-
-If macOS Gatekeeper blocks the plugin, follow these steps:
+If macOS Gatekeeper blocks the native plugin (`NativeUsdBridge.bundle`), follow these steps:
 
 1. Open **System Settings → Privacy & Security**
 2. Scroll down to the security section
@@ -322,17 +392,22 @@ xattr -dr com.apple.quarantine /path/to/your/UnityProject/Packages/com.zenithgat
 
 If the package was installed via a different route, it may instead live under `Library/PackageCache/com.zenithgatestudios.usd-stagecraft*/Runtime/Plugins/macOS/NativeUsdBridge.bundle`.
 
-> Notarization is planned for a future release (see roadmap).
-
 ---
 
-## Known limitations (Early Access)
+## Known limitations
 
-- Plugin is **not yet notarized** on macOS (see [macOS security notice](#macos-security-notice)).
 - Very large USD files (for example **> 500 MB**) may load slowly or stress memory.
 - **USD variants and payloads** are only **partially** supported.
-- **HDRP** is not a fully validated target in this release; prefer **Built-in** or **URP** for predictable shading unless you are explicitly testing HDRP.
-- Advanced **material writeback** and **layer reorder/mute** are not included in this edition (planned for **USD Stagecraft Studio** per roadmap).
+- **HDRP** is integrated but not every DCC / USD combination is validated — report gaps via [Issues](https://github.com/ZenithGateStudios/unity-usd-stagecraft-docs/issues) rather than assuming parity with every native HDRP workflow.
+- **DomeLight** is **not** imported as a full panoramic sky texture; expect an **approximate** environment response through the render-pipeline host (GradientSky-style path on HDRP; see [Render pipelines and shaders](#render-pipelines-and-shaders)).
+- **Built-in RP** **RectLight** mapping uses Unity’s **baked** rectangle light path for real-time views.
+- **`UsdSkel`:** Linear blend skinning only; up to **4** joint influences per vertex. BlendShape and dual-quaternion skinning are not supported (planned for a future release).
+- **USD animation editing:** Read, playback, and Unity bake/export only. Writing keyframes back to USD `timeSamples` is planned for **v1.1**.
+- **Timeline clip mixing:** Baked `StageTimeline.playable` and preview time driving are supported; blending USD clips with other Unity animation tracks is planned for **v2.0**.
+- **Multiple `UsdStagePreview` instances:** Works best with **different** USD files per instance. Opening the **same** file twice logs a warning (OpenUSD shares layer data in memory). **DomeLight** environment is **scene-global** — only one approximate sky is active at a time; unloading one stage restores the remaining stage’s dome when possible.
+- **Baked prefab metadata (`UsdStageReference`):** Absolute paths and edit-layer settings are **Editor-only serialized fields** — they do not ship in Player/ROM builds. The component may remain on baked prefabs at runtime as an empty marker with no serialized data.
+- **`UsdGeomBasisCurves`** (hair, grass, cables) is **not** supported — planned for **v1.1**.
+- Advanced **material writeback** and **layer reorder/mute** are not implemented yet (planned for **v1.2** per roadmap).
 
 ---
 
