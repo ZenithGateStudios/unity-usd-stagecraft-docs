@@ -2,7 +2,7 @@
 
 Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with **manual reload** from the USD Stage panel (diff or full reload after DCC edits).
 
-**Version:** 1.0.0 (v1.0)  
+**Version:** 1.0.1 (v1.0)  
 **Publisher:** ZenithGateStudios
 
 ---
@@ -66,7 +66,7 @@ After import, sample assets live under:
 
 `Assets/Samples/USD Stagecraft/<package-version>/<SampleName>/`
 
-where `<package-version>` matches this package’s version (for example **1.0.0**).
+where `<package-version>` matches this package’s version (for example **1.0.1**).
 
 ### From a local package folder (developers)
 
@@ -265,7 +265,7 @@ No default keybindings; assign under **Edit → Shortcuts** if desired.
 
 Automatic file-watcher hot reload is **disabled** (false positives from Unity Save / Bake / ImportAsset could not be reliably distinguished from DCC saves).
 
-> **Note:** After saving in your DCC (Blender, Maya, etc.), click **Reload** in the USD Stage toolbar to apply changes. Automatic file-watcher reload is disabled in v1.0.0.
+> **Note:** After saving in your DCC (Blender, Maya, etc.), click **Reload** in the USD Stage toolbar to apply changes. Automatic file-watcher reload is disabled in v1.0.1.
 
 After editing USD on disk (DCC or text editor), reload explicitly:
 
@@ -487,11 +487,11 @@ The **Basic Load** sample exposes `shaderName` in the Inspector for quick testin
 
 ### Changelog and version baseline
 
-`CHANGELOG.md` lists **`[1.0.0]`** then **`[0.4.0]`**, **`[0.3.0]`**, etc. (newest first).
+`CHANGELOG.md` lists **`[1.0.1]`** then **`[0.4.0]`**, **`[0.3.0]`**, etc. (newest first).
 
 Authoritative release planning lives in `Documents/planning/ROADMAP.md` at the **Git repository root** (this file ships under `Documentation/` inside the Unity package; the roadmap file is not duplicated inside the package folder).
 
-This **main** line is **package 1.0.0** (**v1.0**) on top of the **v0.4.0** feature set (PointInstancer, HDRP, Bake to Prefab, LOD, ScriptedImporter). **v1.0** adds multi-stage preview, **`UsdSkel`** runtime preview, skeleton / Xform **`AnimationClip`** bake, skinned prefab relink, Timeline integration, animated **ScriptedImporter** import, and DiffReload skinning. **`UsdGeomBasisCurves`** is deferred to **v1.1**.
+This **main** line is **package 1.0.1** (**v1.0**) on top of the **v0.4.0** feature set (PointInstancer, HDRP, Bake to Prefab, LOD, ScriptedImporter). **v1.0** adds multi-stage preview, **`UsdSkel`** runtime preview, skeleton / Xform **`AnimationClip`** bake, skinned prefab relink, Timeline integration, animated **ScriptedImporter** import, and DiffReload skinning. **`UsdGeomBasisCurves`** is deferred to **v1.1**.
 
 Release branches may pin earlier versions; this README matches **`package.json`** on `main`.
 

@@ -2,7 +2,7 @@
 
 All notable changes to USD Stagecraft will be documented in this file.
 
-## [1.0.0] - 2026-07-09
+## [1.0.1] - 2026-07-09
 
 ### Added
 - **`UsdSkel` runtime preview** — Bone hierarchy + `SkinnedMeshRenderer`, time-sampled joint evaluation via `UsdAnimationPlayer` (LBS, up to 4 influences; native: `UsdBridgeSkel.cpp`; Unity: `UsdSkelHandler`, `UsdSkelRig`)
@@ -19,7 +19,7 @@ All notable changes to USD Stagecraft will be documented in this file.
 - **`UsdGeomBasisCurves`** — hair, grass, cables, etc.
 
 ### Notes
-- **v1.0** formal release on `main` / package **1.0.0**. See `Documents/planning/ROADMAP.md` for the authoritative milestone list.
+- **v1.0** first public package version **1.0.1** on `main`. See `Documents/planning/ROADMAP.md` for the authoritative milestone list.
 - If you publish a separate changelog (for example `unity-usd-stagecraft-docs` on GitHub), keep it in sync with this file.
 
 ---
