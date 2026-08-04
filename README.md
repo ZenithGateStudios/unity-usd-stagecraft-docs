@@ -15,7 +15,7 @@ Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, p
 4. [Quick start — Editor preview](#quick-start--editor-preview)
 5. [Quick start — Runtime (samples)](#quick-start--runtime-samples)
 6. [Core concepts](#core-concepts)
-7. [Workflows](#workflows)
+7. [Workflows](#workflows) ([USD Stage window](#usd-stage-window))
 8. [Features (summary)](#features-summary)
 9. [Component and API reference](#component-and-api-reference)
 10. [Render pipelines and shaders](#render-pipelines-and-shaders)
@@ -148,6 +148,119 @@ Changing **File Path**, **Shader Name**, or **Scale** in the Inspector reloads t
 - **Scale:** `0` means **auto** from USD `metersPerUnit`; set explicitly to override world scale.
 - **Auto Load On Start:** When enabled (default), Play mode loads **File Path** on `Start`.
 
+### USD Stage window
+
+The **USD Stage** Editor window is the primary UI for inspecting and editing a loaded stage: Prim hierarchy, properties, layers / EditTarget, animation transport, and Bake / Write-back actions.
+
+#### Open the window
+
+| Method | How |
+|--------|-----|
+| Menu | **Window → USD Stagecraft → USD Stage** |
+| Inspector | On a **UsdStagePreview** component, click **Open USD Stage Panel** |
+| Empty Prim pane | When no stage is in the scene, click **Add UsdStagePreview** in the Prim pane |
+
+The window binds to a **UsdStagePreview** in the open scene (selected via the right-hand **stage menu**). Multiple previews can coexist; pick which stage the panel drives from that dropdown.
+
+#### Layout overview
+
+Top to bottom:
+
+1. **Toolbar** — File / Actions / Options menus, **Reload**, Bake-related buttons, stage selector
+2. **Tabs** — **Prims & Properties** (default) or **Layers**
+3. **Animation footer** — playback controls, scrubber, status line, and read-only **Animation Tracks**
+
+#### Toolbar
+
+| Control | Behavior |
+|---------|----------|
+| **File → New Stage GameObject** | Creates a GameObject with **UsdStagePreview** and binds it. |
+| **File → Open USD…** | File dialog for `.usd` / `.usda` / `.usdc` / `.usdz`; loads into the bound preview (clears a previous EditTarget association). |
+| **File → Open USD with Edit Layer…** | Opens an asset layer path, then asks where to save a new root / edit-layer setup for write-back. |
+| **File → Save Edit Layer** | Flushes Transform / Visibility (and related panel edits) to the current EditTarget layer on disk. Disabled until an EditTarget path exists. |
+| **File → Add Existing Layer…** | Adds an existing USD layer file to the stage layer stack. |
+| **File → New Edit Layer…** | Creates a new edit layer (path from save dialog) and sets it as EditTarget. |
+| **File → Reload** | Diff reload from disk (same as toolbar **Reload**). |
+| **File → Reload Full** | Full unload + rebuild (same as Shift+click **Reload**). |
+| **Actions → Bake to Prefab…** | Opens the bake folder picker and exports Unity Prefabs / clips (see [Baked Prefab ↔ USD Stage Preview](#baked-prefab--usd-stage-preview-current)). |
+| **Actions → Open Baked Prefab in USD Preview** | Rehydrates a selected baked prefab instance into a live **UsdStagePreview** (enabled when baked ops apply). |
+| **Actions → Write Baked Prefab to USD** | Writes bound transforms / visibility from a baked prefab back to USD via **UsdStageReference**. |
+| **Actions → Frame Selected Prim** | Frames the Scene view on the GameObject for the Prim selected in the tree. |
+| **Options → Show Inactive Prims** | Toggle: include inactive Prims in the Prim tree. |
+| **Reload** (toolbar button) | **Diff reload** from disk. **Shift+click** = full reload. Tooltip matches this behavior. |
+| **Open in Preview** / **Write to USD** / **Bake to Prefab** | Shortcut toolbar buttons for the Bake / Rehydrate / Write-back actions (enabled when the current selection / stage allows them). |
+| **Stage menu** (right) | Lists **UsdStagePreview** instances in the scene; switch which stage the panel is bound to. Shows `(no stage)` when none is available. |
+
+#### Prims & Properties tab
+
+Split view: **Prim** tree (left) and **Property** list (right).
+
+**Prim tree** columns:
+
+| Column | Meaning |
+|--------|---------|
+| **Prim** | Prim name (leaf of the prim path) |
+| **Type** | USD type name |
+| **Payload** | Payload-related status when applicable |
+
+Selecting a Prim selects the matching GameObject in the Hierarchy (when present) and fills the Property pane.
+
+**Property** pane (depends on selection):
+
+| Property | Editable | Notes |
+|----------|----------|-------|
+| **visibility** | Yes | Written to the EditTarget; Scene GameObject visibility updates. |
+| **purpose** | Yes | `default` / `render` / `proxy` / `guide` (dropdown). |
+| **kind** | Yes | Model hierarchy kind (assembly / group / component / subcomponent, or empty). |
+| **generateLod** | Yes | USD `customData` for LOD generation preference. |
+| **lodProfile** | Yes | LOD profile preset name (or inherit). See [LOD](#lod-bake-primary-path--thin-importer). |
+| **xformOp:translate** / **rotateXYZ** / **scale** | Yes | Vector edits; sync with the Unity Transform when bound. |
+| **variant:** *setName* | Yes | Variant selection for that set (persists after **Save Edit Layer**). |
+| **references** | No | Read-only list of referenced asset paths. |
+
+Panel edits apply to the current **EditTarget** in memory. Persist them with **File → Save Edit Layer** (or the Inspector **Save** flow). Materials, lights, and mesh geometry are not written back from this pane.
+
+#### Layers tab
+
+Lists every layer on the bound stage:
+
+- **Edit** radio (UE-style): only one EditTarget at a time; the active row’s toggle is disabled
+- EditTarget rows show a pencil prefix; dirty EditTarget layers append **●**
+- Layer display names show full path in the tooltip
+
+Use **File → New Edit Layer…** / **Add Existing Layer…** to grow the stack, then **Save Edit Layer** to flush overrides. See [Edit layers and save](#edit-layers-and-save) and [Unity ↔ DCC edit cycle](#unity--dcc-edit-cycle-current).
+
+#### Animation footer
+
+Always visible at the bottom of the window (when a stage is bound):
+
+| Control | Behavior |
+|---------|----------|
+| Seek / step / play-pause / stop | Transport for time-sampled animation |
+| **Wrap** dropdown | **Loop**, **Once**, or **PingPong** |
+| Scrubber | Frame scrub; evaluates immediately in Edit mode |
+| Status line | Frame range, time (seconds), and FPS |
+| **Animation Tracks** | Read-only list of animation tracks on the stage |
+
+Evaluation uses **UsdAnimationPlayer** (Xform, PointInstancer, **UsdSkel** joints). When Timeline is installed and a **UsdStageTimelineBridge** / preview **PlayableDirector** is present, play/scrub can drive that director as well. For bake-time Timeline assets, see [Skeletal mesh (`UsdSkel`)](#skeletal-mesh-usdskel) and [Baked Prefab ↔ USD Stage Preview](#baked-prefab--usd-stage-preview-current).
+
+#### Menu shortcuts
+
+| Menu | Action |
+|------|--------|
+| **Tools → USD Stagecraft → Reload Stage** | Diff reload on the bound (or focused) preview |
+| **Tools → USD Stagecraft → Reload Stage Full** | Full reload |
+
+No default keybindings; assign under **Edit → Shortcuts** if desired.
+
+#### Related workflows
+
+- [Reload from disk (diff / full)](#reload-from-disk-diff--full)
+- [Edit layers and save](#edit-layers-and-save)
+- [Unity ↔ DCC edit cycle](#unity--dcc-edit-cycle-current)
+- [Baked Prefab ↔ USD Stage Preview](#baked-prefab--usd-stage-preview-current)
+- [LOD](#lod-bake-primary-path--thin-importer)
+
 ### Reload from disk (diff / full)
 
 Automatic file-watcher hot reload is **disabled** (false positives from Unity Save / Bake / ImportAsset could not be reliably distinguished from DCC saves).
@@ -160,7 +273,7 @@ After editing USD on disk (DCC or text editor), reload explicitly:
 |--------|----------|
 | **USD Stage** toolbar **Reload** | **Diff reload** — keeps the GameObject tree, reloads layers from disk, applies Notices |
 | Shift+click toolbar **Reload**, or **File → Reload Full** | **Full reload** — Unload + LoadSync rebuild |
-| **USD Stagecraft → Reload Stage** / **Reload Stage Full** | Same as above (no default keybinding; assign under **Edit → Shortcuts** if desired) |
+| **Tools → USD Stagecraft → Reload Stage** / **Reload Stage Full** | Same as above (no default keybinding; assign under **Edit → Shortcuts** if desired) |
 
 APIs: `UsdStagePreview.RequestDiffReloadFromDisk()` / `RequestFullReload()`. Advanced: `UsdLoader.DiffReload(LoadResult, changedPaths)` (**main thread only**).
 
@@ -204,7 +317,7 @@ This package supports a **manual** round trip between a DCC tool and **UsdStageP
 
 1. Open the same root USD in your DCC and in Unity (**UsdStagePreview** or **USD Stage** window).
 2. In Unity, create an edit layer (**+** in **USD Stage** → Layers) if you plan to write edits back.
-3. DCC saves → in Unity, press **Reload** in the **USD Stage** window (or **USD Stagecraft → Reload Stage**).
+3. DCC saves → in Unity, press **Reload** in the **USD Stage** window (or **Tools → USD Stagecraft → Reload Stage**).
 4. Unity edits → **File → Save Edit Layer** (or Inspector **Save**).
 5. In the DCC, ensure the root USD references the Unity edit layer as a **SubLayer** (Unity **Save** also writes `subLayers` on the root when possible). Reload the stage in the DCC to see overrides.
 
@@ -426,7 +539,7 @@ If the package was installed via a different route, it may instead live under `L
 | **Nothing appears in Edit mode** | **File Path** empty or wrong; macOS quarantine on the bundle (see security notice); Console for `[UsdStagePreview]` errors. |
 | **Pink materials** | **Shader Name** does not match the active render pipeline (see [Render pipelines and shaders](#render-pipelines-and-shaders)). |
 | **Load fails at runtime** | Path must be readable on device; use **StreamingAssets** or a known absolute path. Inspect `LoadResult.ErrorMessage` after `LoadAsync`. |
-| **Preview does not update after DCC save** | Automatic watch is off. Press **Reload** in **USD Stage** (or **USD Stagecraft → Reload Stage**). Use **Reload Full** if the hierarchy is wrong. |
+| **Preview does not update after DCC save** | Automatic watch is off. Press **Reload** in **USD Stage** (or **Tools → USD Stagecraft → Reload Stage**). Use **Reload Full** if the hierarchy is wrong. |
 | **Save disabled or warns** | Create an EditTarget with **+** first; **Save** requires a valid EditTarget layer path. |
 
 ---
