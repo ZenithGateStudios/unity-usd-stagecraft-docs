@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ZenithGate Studios | USD Stagecraft</title>
-  <meta name="description" content="ZenithGate Studios builds Unity tooling for OpenUSD scene loading, editor preview, hot reload, and asset pipeline iteration.">
+  <meta name="description" content="USD Stagecraft v1.0 — OpenUSD runtime loading, Editor preview, manual reload, UsdSkel, Bake to Prefab, and Timeline for Unity.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,11 +24,10 @@
   <main>
     <section class="hero">
       <p class="eyebrow">Unity tools for OpenUSD workflows</p>
-      <h1>Build Unity scenes from USD files with practical runtime and editor tooling.</h1>
+      <h1>Load, preview, and bake OpenUSD stages in Unity — without Play mode.</h1>
       <p class="hero-copy">
-        USD Stagecraft loads OpenUSD files in Unity, previews stages in the Editor without Play mode,
-        and supports iteration workflows such as file watching, variant selection, animation playback,
-        and edit-layer saving.
+        USD Stagecraft bridges OpenUSD and Unity with Editor preview, manual diff/full reload after DCC saves,
+        <code>UsdSkel</code> skeletal animation, Bake to Prefab, and Timeline / Playable integration.
       </p>
       <div class="actions">
         <a class="button primary" href="https://assetstore.unity.com/packages/tools/integration/usd-stagecraft-377054" rel="noopener" target="_blank">Get on Unity Asset Store</a>
@@ -74,21 +73,33 @@
           <p>Preview a USD stage in the Scene view without entering Play mode using <code>UsdStagePreview</code>.</p>
         </article>
         <article class="card">
-          <h3>Iteration workflow</h3>
-          <p>Use file watching, diff reload, variants, animation controls, and edit layers for faster DCC-to-Unity iteration.</p>
+          <h3>Manual reload</h3>
+          <p>After saving in your DCC, click <strong>Reload</strong> in the USD Stage toolbar for diff or full reload. Automatic file watching is disabled in v1.0.0.</p>
+        </article>
+        <article class="card">
+          <h3>UsdSkel + Bake</h3>
+          <p>Skeletal preview with <code>SkinnedMeshRenderer</code>, <code>AnimationClip</code> bake, skinned prefabs, and optional Timeline playables.</p>
+        </article>
+        <article class="card">
+          <h3>Bake / LOD / Importer</h3>
+          <p>Bake to Prefab with rehydrate and write-back, LOD generation, and animated ScriptedImporter for project USD assets.</p>
+        </article>
+        <article class="card">
+          <h3>Built-in, URP, HDRP</h3>
+          <p>Primary targets include Built-in RP and URP; optional HDRP host for materials, lights, and approximate DomeLight.</p>
         </article>
       </div>
       <p style="margin-top: 1.5rem;">
-        <strong>v0.2.0</strong> adds <strong>Windows x64</strong> native plugins and local <code>.usdz</code> paths.
-        Early Access <strong>$59</strong> — all updates included.
+        <strong>v1.0.0</strong> formal release — multi-stage preview, <code>UsdSkel</code>, AnimationClip bake, Timeline, and animated ScriptedImporter.
         <a href="https://assetstore.unity.com/packages/tools/integration/usd-stagecraft-377054" rel="noopener" target="_blank">Get USD Stagecraft on the Unity Asset Store</a>.
       </p>
       <div class="demo-card">
         <a href="https://x.com/nagii123/status/2073392599000613274" rel="noopener" target="_blank">
-          <img src="images/usd-stagecraft-v0.2-demo-thumbnail.png" alt="USD Stagecraft v0.2 demo: Blender USD edit updates Unity Editor without Play mode">
+          <img src="images/usd-stagecraft-v0.2-demo-thumbnail.png" alt="USD Stagecraft demo: Blender USD edit updates Unity Editor without Play mode">
         </a>
         <p>
-          Watch the v0.2 workflow demo on X: Blender edit, save, and Unity Editor updates without Play mode.
+          Workflow demo on X: edit USD in Blender, save, then update Unity Editor preview without Play mode
+          (in v1.0.0, press <strong>Reload</strong> in the USD Stage toolbar after saving).
         </p>
         <p>
           <a class="button secondary" href="https://x.com/nagii123/status/2073392599000613274" rel="noopener" target="_blank">Watch demo on X</a>
@@ -99,17 +110,17 @@
     <section class="section split">
       <div>
         <p class="eyebrow">Supported release</p>
-        <h2>Version 0.2.0 Early Access</h2>
+        <h2>Version 1.0.0</h2>
       </div>
       <div>
         <ul class="check-list">
           <li>Unity 2022.3 LTS or later</li>
           <li>macOS Apple Silicon arm64</li>
           <li>Windows x64</li>
-          <li>Built-in Render Pipeline and URP primary targets</li>
+          <li>Built-in Render Pipeline, URP, and HDRP</li>
         </ul>
         <p style="margin-top: 1rem;">
-          <a class="button primary" href="https://assetstore.unity.com/packages/tools/integration/usd-stagecraft-377054" rel="noopener" target="_blank">Unity Asset Store — v0.2</a>
+          <a class="button primary" href="https://assetstore.unity.com/packages/tools/integration/usd-stagecraft-377054" rel="noopener" target="_blank">Unity Asset Store — v1.0</a>
         </p>
       </div>
     </section>

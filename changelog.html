@@ -29,29 +29,66 @@
     </section>
 
     <section class="section release">
-      <h2>0.2.0 <span>2026-07-02</span></h2>
+      <h2>1.0.0 <span>2026-07-09</span></h2>
       <h3>Added</h3>
       <ul>
-        <li><strong>Windows (x86_64) native plugins</strong> — Editor and Standalone Windows x64.</li>
-        <li><strong><code>.usdz</code> local file paths</strong> — Loader and Editor file watcher accept <code>.usdz</code> alongside <code>.usd</code> / <code>.usda</code> / <code>.usdc</code>.</li>
-        <li>Third-party OSS attribution and full Apache 2.0 license text in <code>ThirdParty/README.txt</code>.</li>
-        <li>OpenUSD shared monolithic library (<code>libusd_ms.dylib</code> / <code>usd_ms.dll</code>) with USD plugins under <code>usd/</code> next to the native bridge.</li>
+        <li><strong><code>UsdSkel</code> runtime preview</strong> — Bone hierarchy + <code>SkinnedMeshRenderer</code>, time-sampled joint evaluation via <code>UsdAnimationPlayer</code> (LBS, up to 4 influences).</li>
+        <li><strong>Skeleton + Xform <code>AnimationClip</code> bake</strong> — Joint and transform curves + <code>AnimatorController</code> during Bake to Prefab / Import.</li>
+        <li><strong>SkinnedMesh Prefab promotion + relink</strong> — <code>Visuals/Skinned_*/</code> prefab output and stage hierarchy relink.</li>
+        <li><strong>Timeline / Playable integration</strong> — Preview time driver and baked <code>StageTimeline.playable</code>.</li>
+        <li><strong><code>UsdScriptedImporter</code> skeletal mesh + clip support</strong> — Animated USD import with clips, skinned prefabs, and timeline.</li>
+        <li><strong>DiffReload skinning</strong> — Deferred skinning pass after reload.</li>
+        <li><strong>Multi-stage preview</strong> — Multiple <code>UsdStagePreview</code> instances per scene.</li>
+        <li><strong><code>com.unity.timeline</code> dependency</strong> — Optional <code>UsdStagecraft.Timeline</code> assembly.</li>
       </ul>
-      <h3>Changed</h3>
+      <h3>Deferred to v1.1</h3>
       <ul>
-        <li>OpenUSD redistribution unified to shared monolithic <code>libusd_ms</code> / <code>usd_ms.dll</code>.</li>
-        <li>macOS native plugins are <strong>Apple Silicon (arm64) only</strong> (Intel Mac support dropped).</li>
+        <li><strong><code>UsdGeomBasisCurves</code></strong> — hair, grass, cables, etc.</li>
       </ul>
-      <h3>Removed</h3>
+      <h3>Notes</h3>
       <ul>
-        <li>macOS Intel (x86_64) support — macOS plugins and OpenUSD SDK are arm64 only.</li>
+        <li><strong>v1.0</strong> formal release on <code>main</code> / package <strong>1.0.0</strong>.</li>
       </ul>
     </section>
 
     <section class="section release">
-      <h2>0.1.5 <span>2026-06-13</span></h2>
+      <h2>0.4.0</h2>
+      <h3>Added</h3>
       <ul>
-        <li>Minor bug fixes.</li>
+        <li><strong>instanceable / PointInstancer</strong> — Instance proxies and PointInstancer mesh expansion (GPU instancing not yet supported).</li>
+        <li><strong>HDRP</strong> (optional <code>UsdStagecraft.Hdrp</code>) — <code>HDRenderPipelineHost</code> for materials, lights, and DomeLight via GradientSky.</li>
+        <li><strong>USD Stage panel — property editing</strong> — Transform ops, purpose, kind, and references viewer.</li>
+      </ul>
+      <h3>Changed</h3>
+      <ul>
+        <li>Editor assembly precompiled as <code>UsdStagecraft.Editor.dll</code> for distribution packages.</li>
+      </ul>
+      <h3>Removed</h3>
+      <ul>
+        <li>macOS Intel (x86_64) support — macOS plugins are Apple Silicon (arm64) only.</li>
+      </ul>
+    </section>
+
+    <section class="section release">
+      <h2>0.3.0</h2>
+      <h3>Added</h3>
+      <ul>
+        <li><strong><code>UsdGeomSubset</code> (materialBind)</strong> — Sub-mesh splitting and multiple <code>UsdPreviewSurface</code> assignments.</li>
+        <li><strong>UsdLux extensions</strong> — DomeLight environment approximation, RectLight size, spot shaping, intensity / exposure / color.</li>
+        <li><strong><code>.usdz</code></strong> — Local file paths accepted by the loader.</li>
+      </ul>
+    </section>
+
+    <section class="section release">
+      <h2>0.2.0</h2>
+      <h3>Added</h3>
+      <ul>
+        <li><strong>Windows (x86_64) native plugins</strong> — Editor and Standalone Windows x64.</li>
+        <li>Third-party OSS attribution and full Apache 2.0 license text in <code>ThirdParty/README.txt</code>.</li>
+      </ul>
+      <h3>Notes</h3>
+      <ul>
+        <li>When upgrading the OpenUSD SDK, refresh third-party notices and version strings as applicable.</li>
       </ul>
     </section>
 
@@ -60,10 +97,6 @@
       <h3>Added</h3>
       <ul>
         <li><code>ThirdParty/README.txt</code>: attribution, NOTICE, and full Apache 2.0 text for redistributed OpenUSD 0.26.5, Intel oneTBB, plus MaterialX / usdMtlx notice.</li>
-      </ul>
-      <h3>Notes</h3>
-      <ul>
-        <li>When upgrading the OpenUSD SDK under <code>Core/external/USD</code>, refresh third-party notices and version strings as applicable.</li>
       </ul>
     </section>
 
@@ -82,12 +115,12 @@
         <li>Runtime loading of OpenUSD <code>.usd</code>, <code>.usda</code>, and <code>.usdc</code> files.</li>
         <li><code>UsdLoader</code> async and sync USD file loading API.</li>
         <li><code>UsdMeshBuilder</code> mesh conversion, <code>UsdMaterialLoader</code> material support, and <code>UsdTextureCache</code> texture caching.</li>
-        <li><code>UsdStagePreview</code> Editor preview mode and <code>UsdFileWatcher</code> hot reload.</li>
+        <li><code>UsdStagePreview</code> Editor preview mode.</li>
         <li>macOS Apple Silicon arm64 native plugin.</li>
       </ul>
       <h3>Known limitations</h3>
       <ul>
-        <li>macOS Apple Silicon only in Early Access.</li>
+        <li>macOS Apple Silicon only at release time.</li>
         <li>USD variants and payloads are partially supported.</li>
       </ul>
     </section>

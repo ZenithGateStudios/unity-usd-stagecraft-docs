@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>USD Stagecraft Documentation | ZenithGate Studios</title>
-  <meta name="description" content="Documentation for USD Stagecraft, a Unity package for OpenUSD runtime loading, editor preview, and iteration workflows.">
+  <meta name="description" content="Documentation for USD Stagecraft 1.0.0 — OpenUSD runtime loading, Editor preview, manual reload, UsdSkel, and Bake to Prefab.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,8 +24,8 @@
   <main class="content-page">
     <section class="page-title">
       <p class="eyebrow">Documentation</p>
-      <h1>USD Stagecraft 0.2.0</h1>
-      <p>Load OpenUSD (<code>.usd</code> / <code>.usda</code> / <code>.usdc</code> / <code>.usdz</code>) files at runtime in Unity, preview them in the Editor, and iterate with file watching and diff reload.</p>
+      <h1>USD Stagecraft 1.0.0</h1>
+      <p>Load OpenUSD (<code>.usd</code> / <code>.usda</code> / <code>.usdc</code> / <code>.usdz</code>) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with <strong>manual reload</strong> from the USD Stage panel.</p>
     </section>
 
     <section class="section">
@@ -34,9 +34,9 @@
         <table>
           <tbody>
             <tr><th>Unity</th><td>2022.3 LTS or later</td></tr>
-            <tr><th>macOS</th><td>Apple Silicon (M1 / M2 / M3), arm64 only</td></tr>
+            <tr><th>macOS</th><td>Apple Silicon (arm64) only</td></tr>
             <tr><th>Windows</th><td>x64</td></tr>
-            <tr><th>Render pipelines</th><td>Built-in Render Pipeline and URP are the primary targets (HDRP planned for v0.4.0)</td></tr>
+            <tr><th>Render pipelines</th><td>Built-in RP, URP, and HDRP (optional HDRP host)</td></tr>
           </tbody>
         </table>
       </div>
@@ -46,11 +46,7 @@
       <h2>Installation</h2>
       <p>
         <a class="button primary" href="https://assetstore.unity.com/packages/tools/integration/usd-stagecraft-377054" rel="noopener" target="_blank">Get USD Stagecraft on the Unity Asset Store</a>
-        (v0.2.0 — Windows x64 and macOS Apple Silicon, Early Access $59).
-      </p>
-      <p>
-        Watch the v0.2 workflow demo on X:
-        <a href="https://x.com/nagii123/status/2073392599000613274" rel="noopener" target="_blank">Blender to Unity hot reload</a>.
+        (v1.0.0 — Windows x64 and macOS Apple Silicon).
       </p>
       <ol>
         <li>Open <strong>Window &gt; Package Manager</strong> in Unity.</li>
@@ -109,15 +105,19 @@ public class LoadUsdOnce : MonoBehaviour
       <div class="card-grid">
         <article class="card">
           <h3>Stage preview</h3>
-          <p>Edit mode uses synchronous loading for preview. Play mode uses asynchronous loading through <code>Load()</code> or <strong>Auto Load On Start</strong>.</p>
+          <p>Edit mode uses synchronous loading for preview. Play mode uses asynchronous loading through <code>Load()</code> or <strong>Auto Load On Start</strong>. Multiple <code>UsdStagePreview</code> instances per scene are supported.</p>
         </article>
         <article class="card">
-          <h3>Hot reload</h3>
-          <p>When a watched USD layer or referenced texture changes on disk, USD Stagecraft refreshes the stage or materials where applicable.</p>
+          <h3>Manual reload</h3>
+          <p>Automatic file watching is disabled in v1.0.0. After saving USD in your DCC, click <strong>Reload</strong> (diff) or Shift+click / <strong>Reload Full</strong> in the USD Stage toolbar.</p>
+        </article>
+        <article class="card">
+          <h3>UsdSkel + Bake</h3>
+          <p>Skeletal stages preview with <code>SkinnedMeshRenderer</code>. Bake to Prefab emits <code>AnimationClip</code>, skinned prefabs, and optional <code>StageTimeline.playable</code>.</p>
         </article>
         <article class="card">
           <h3>Variants and edit layers</h3>
-          <p>Inspector controls expose USD variants and edit-layer operations without modifying the original root USD as the primary workflow.</p>
+          <p>Inspector and USD Stage panel expose variants, EditTarget layers, and Transform / Visibility write-back without overwriting the original root USD as the primary workflow.</p>
         </article>
       </div>
     </section>
@@ -126,10 +126,12 @@ public class LoadUsdOnce : MonoBehaviour
       <h2>Known limitations</h2>
       <ul>
         <li>macOS Apple Silicon (arm64) and Windows x64.</li>
-        <li>The native plugin is not notarized in the current Early Access release.</li>
         <li>Very large USD files may load slowly or stress memory.</li>
         <li>USD variants and payloads are partially supported.</li>
-        <li>HDRP fuller support is planned for v0.4.0.</li>
+        <li><code>UsdSkel</code>: linear blend skinning only, up to 4 joint influences per vertex.</li>
+        <li><code>UsdGeomBasisCurves</code> is not supported (planned for v1.1).</li>
+        <li>HDRP is integrated but not every DCC / USD combination is fully validated.</li>
+        <li>Writing keyframes back to USD timeSamples is planned for v1.1.</li>
       </ul>
     </section>
 
@@ -141,7 +143,7 @@ public class LoadUsdOnce : MonoBehaviour
   </main>
 
   <footer class="site-footer">
-    <p>&copy; 2026 ZenithGate Studios. Documentation based on the release-v0.2.x package documentation.</p>
+    <p>&copy; 2026 ZenithGate Studios. Documentation based on the package 1.0.0 documentation.</p>
   </footer>
 </body>
 </html>

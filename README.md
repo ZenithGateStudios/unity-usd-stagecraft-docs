@@ -1,6 +1,6 @@
 # USD Stagecraft
 
-Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with file watching and diff reload.
+Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, preview them in the Editor without Play mode, and iterate with **manual reload** from the USD Stage panel (diff or full reload after DCC edits).
 
 **Version:** 1.0.0 (v1.0)  
 **Publisher:** ZenithGateStudios
@@ -44,7 +44,7 @@ Load OpenUSD (`.usd` / `.usda` / `.usdc` / `.usdz`) files at runtime in Unity, p
 - **Supported extensions:** `.usd`, `.usda`, `.usdc`, `.usdz` (local file paths).
 - **Absolute paths:** Any readable path on disk (typical for DCC exports next to your project).
 - **StreamingAssets:** Recommended for **runtime** builds. Place USD files under `Assets/StreamingAssets/` and resolve with `Path.Combine(Application.streamingAssetsPath, "file.usda")` (see the **Basic Load** sample).
-- **Textures** referenced from USD are resolved relative to the USD file; changing a texture on disk triggers a material refresh when using **UsdStagePreview** file watching.
+- **Textures** referenced from USD are resolved relative to the USD file; after a texture change on disk, run **Reload** (diff) so materials refresh.
 
 ---
 
@@ -148,15 +148,21 @@ Changing **File Path**, **Shader Name**, or **Scale** in the Inspector reloads t
 - **Scale:** `0` means **auto** from USD `metersPerUnit`; set explicitly to override world scale.
 - **Auto Load On Start:** When enabled (default), Play mode loads **File Path** on `Start`.
 
-### Hot reload and diff reload
+### Reload from disk (diff / full)
 
-When **UsdStagePreview** has an active load, it watches the root USD path and **layer dependencies**. On change:
+Automatic file-watcher hot reload is **disabled** (false positives from Unity Save / Bake / ImportAsset could not be reliably distinguished from DCC saves).
 
-- USD layer changes trigger **stage reload** and **diff** updates to the hierarchy where applicable.
-- Texture changes invalidate the texture cache and **refresh materials**.
-- Changes to Unity-managed **persistent SubLayer** files (created via the **+** edit-layer flow) are **filtered out** from diff reload so your in-editor edits are not wiped by accidental file events.
+> **Note:** After saving in your DCC (Blender, Maya, etc.), click **Reload** in the USD Stage toolbar to apply changes. Automatic file-watcher reload is disabled in v1.0.0.
 
-Advanced: `UsdLoader.DiffReload(LoadResult, changedPaths)` exists for custom tooling; **call only from the main thread**.
+After editing USD on disk (DCC or text editor), reload explicitly:
+
+| Action | Behavior |
+|--------|----------|
+| **USD Stage** toolbar **Reload** | **Diff reload** — keeps the GameObject tree, reloads layers from disk, applies Notices |
+| Shift+click toolbar **Reload**, or **File → Reload Full** | **Full reload** — Unload + LoadSync rebuild |
+| **USD Stagecraft → Reload Stage** / **Reload Stage Full** | Same as above (no default keybinding; assign under **Edit → Shortcuts** if desired) |
+
+APIs: `UsdStagePreview.RequestDiffReloadFromDisk()` / `RequestFullReload()`. Advanced: `UsdLoader.DiffReload(LoadResult, changedPaths)` (**main thread only**).
 
 ### Variants
 
@@ -189,7 +195,7 @@ This package supports a **manual** round trip between a DCC tool and **UsdStageP
 
 | Direction | What works today | What does not |
 |-----------|------------------|---------------|
-| **DCC → Unity** | Save USD on disk → **UsdStagePreview** file watcher runs **DiffReload** (meshes, materials, transforms, visibility, variants from disk). | Prim-level live push without a file save. |
+| **DCC → Unity** | Save USD on disk → **Reload** in the **USD Stage** window (or shortcut) runs **DiffReload** (meshes, materials, transforms, visibility, variants from disk). | Automatic file-watcher apply; prim-level live push without a file save. |
 | **Unity → DCC** | Edit **Transform** / **Visibility** in the Hierarchy or **USD Stage** panel → **Save Edit Layer** writes to the **EditTarget** sidecar and updates root `subLayers`. | Materials, lights, mesh geometry. |
 | **Variants** | Switch in Inspector / **USD Stage** → stored on **EditTarget** (persist after **Save**). | — |
 | **purpose / kind** | Edited in **USD Stage** Properties → EditTarget in memory → **Save** to disk. | — |
@@ -198,11 +204,11 @@ This package supports a **manual** round trip between a DCC tool and **UsdStageP
 
 1. Open the same root USD in your DCC and in Unity (**UsdStagePreview** or **USD Stage** window).
 2. In Unity, create an edit layer (**+** in **USD Stage** → Layers) if you plan to write edits back.
-3. DCC saves → Unity preview updates automatically (hot reload).
+3. DCC saves → in Unity, press **Reload** in the **USD Stage** window (or **USD Stagecraft → Reload Stage**).
 4. Unity edits → **File → Save Edit Layer** (or Inspector **Save**).
 5. In the DCC, ensure the root USD references the Unity edit layer as a **SubLayer** (Unity **Save** also writes `subLayers` on the root when possible). Reload the stage in the DCC to see overrides.
 
-Unity-managed edit layer files are **ignored** by diff reload so your own saves do not wipe the preview.
+Use **Reload Full** if the hierarchy looks wrong after a large structural edit.
 
 ### Baked Prefab ↔ USD Stage Preview (current)
 
@@ -289,7 +295,7 @@ public class LoadUsdOnce : MonoBehaviour
 - **Multi-stage preview** — multiple **UsdStagePreview** instances per scene (**Window → USD Stagecraft → USD Stage**)
 - **UsdStagePreview** — Editor preview without Play; Play mode async load
 - **Variant sets** — Inspector selection on loader and bound prims
-- **Hot reload** — file watcher + diff reload for rapid DCC iteration
+- **Manual reload** — **USD Stage** Reload / menu items for DCC iteration (diff or full; shortcuts optional via Edit → Shortcuts)
 - **Edit layers** — EditTarget selection, new SubLayer, save Transform / Visibility to EditTarget
 - **Root subLayers + Save** — `[+]` registers layers in memory; **Save** writes edit layer + root `subLayers` to disk; EditTarget on `UsdStagePreview`
 
@@ -309,6 +315,8 @@ public class LoadUsdOnce : MonoBehaviour
 | `Unload()` | Destroys loaded hierarchy and closes the stage. |
 | `SaveEditLayer()` | Writes Transform/Visibility deltas to the current EditTarget layer file. |
 | `SetVariant(primPath, variantSetName, variantName)` | Selects a variant (EditTarget) and refreshes the subtree. Save to persist. |
+| `RequestDiffReloadFromDisk()` | Reloads layers from disk and applies a diff update (preferred after DCC save). |
+| `RequestFullReload()` | Full Unload + reload rebuild. |
 | `HasPendingUnityEdits()` | True when unsaved Transform/Visibility deltas exist. |
 
 ### `UsdStageReference` (baked Prefab root)
@@ -418,7 +426,7 @@ If the package was installed via a different route, it may instead live under `L
 | **Nothing appears in Edit mode** | **File Path** empty or wrong; macOS quarantine on the bundle (see security notice); Console for `[UsdStagePreview]` errors. |
 | **Pink materials** | **Shader Name** does not match the active render pipeline (see [Render pipelines and shaders](#render-pipelines-and-shaders)). |
 | **Load fails at runtime** | Path must be readable on device; use **StreamingAssets** or a known absolute path. Inspect `LoadResult.ErrorMessage` after `LoadAsync`. |
-| **Hot reload does nothing** | File watcher listens to the root path and **layer** paths; ensure saves flush to disk. Some Unity-managed edit-layer files are intentionally ignored for reload. |
+| **Preview does not update after DCC save** | Automatic watch is off. Press **Reload** in **USD Stage** (or **USD Stagecraft → Reload Stage**). Use **Reload Full** if the hierarchy is wrong. |
 | **Save disabled or warns** | Create an EditTarget with **+** first; **Save** requires a valid EditTarget layer path. |
 
 ---
